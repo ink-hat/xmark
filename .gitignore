@@ -1,5 +1,11 @@
 data/
 
+_ignore_*
+
+test/*
+
+html_out.html
+
 # The following are standard python ignores
 # Byte-compiled / optimized / DLL files
 __pycache__/
