@@ -4,6 +4,7 @@ import re
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
+import math
 
 INT_SIZE = 32
 MAX_CHECK_NUMBER = 10000
@@ -17,7 +18,10 @@ def main():
         cho = int(input())
         if cho == 1 :
             findIteration_init()
-            findIteration()
+            if MAX_CHECK_NUMBER < 1_000_000:
+                findIteration()
+            else:
+                findIteration_fast()
         elif cho == 2 :
             visualize_init()
         elif cho == 0 :
@@ -107,6 +111,39 @@ def findIteration():
         print(i,end='\r')
     f = writeDataCSV(dataTable,dataHeading)
     print('Data File : ' + f)
+
+def findIteration_fast():
+    global MAX_CHECK_NUMBER
+    print('Calculating number of iterations in collatz conjecture')
+    print('Highest input : %d' % (MAX_CHECK_NUMBER))
+    print('Integer Size : %d' % (INT_SIZE))
+    
+    dataHeading = ('X','Iteration','Integer Overflow','First Overflow Index','Overflow Number')
+    dataTable = list()
+    int_size_mask = (1<< INT_SIZE) - 1
+    MAX_CHECK_NUMBER = MAX_CHECK_NUMBER & int_size_mask
+    print_mask = ((1 << 20)-1)
+	
+    for i in range(1,MAX_CHECK_NUMBER+1):
+        n = i & int_size_mask
+        numRounds = 0
+        while n > 1:
+            if (n & 1) == 1:
+                n = 3*n + 1
+            else:
+                n = n // 2
+            numRounds += 1
+            n = n & int_size_mask
+        if (i & print_mask) == 0:    
+            print(i,end="\r")
+		
+        dataRow = [i,numRounds]
+        dataTable.append(dataRow)
+        #print(i,end="\r")
+            
+    f = writeDataCSV(dataTable,dataHeading)
+    print('Data File : ' + f)
+        
 
 def checkIntegerOverflow(seq):
     for index,num in enumerate(seq):
