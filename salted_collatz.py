@@ -73,8 +73,6 @@ class SaltedCollatz:
         s1_coef[0] -= 1 # substract 1 from last element of s1_coef
         # calculate s = s0 + s1
         s_coef = list(map( lambda s0i,s1i: s0i+s1i, s0_coef, s1_coef) )
-        # substracting 1X from s
-        # s_coef[1] -= 1
 
         self.s_coef = tuple(s_coef)
     
