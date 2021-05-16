@@ -20,17 +20,11 @@ def main():
     sInv = sc.sInv_coef
     modulo =  sc.modulo
     # calling embedded function
-    hailstoneSequence = embedded_func()
+    hailstoneSequence = target_func()
 
     Collatz_test().test(hailstoneSequence,y)
 
-
-def original_func():
-    c = 30
-    if x == c:
-        print('\n....payload block....\n')
-
-def embedded_func():
+def target_func():
     yr = y
     c = 30
     sr = 0
@@ -49,6 +43,5 @@ def embedded_func():
             print('\n....payload block....\n')
     return tuple(hailstoneSequence)
         
-    
 if __name__ == '__main__':
     main()
