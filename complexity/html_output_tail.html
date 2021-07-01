@@ -1,29 +1,38 @@
 <style>
 	html,body{
 		font-family:segoe ui;
-		background:#ccc;
+		background:#fff;
+	}
+	h3{
+		font-weight:600;
 	}
 	table.result{
 		font-size: 14px;
 		border-spacing:0;
 		margin:auto;
 		min-width:70%;
+		border: 2px solid #1597ff;
 	}
+	
+	/* --------- table header -------------*/
 	table.result thead {
 	    position: relative;
 		box-shadow: 0px 6px 6px -5px #0000005c;
 		z-index: 0;
 	}
 	table.result thead tr th {
-		padding: 8px 15px;
+		padding: 10px 15px;
 		border-right: 1px solid #0000001a;
 		background: #64b5f6;
 		font-weight:600;
+		color: #fff;
+		font-size:16px;
 	}
 	table.result thead tr th:last-child {
 		border-right:0;
 	}
 	
+	/* -------- table body --------------*/
 	table.result>tbody>tr>td{
 		padding:5px 10px;
 		text-align:right;
@@ -36,12 +45,14 @@
 	}
 	
 	table.result>tbody>tr>td:first-child {
-		background: #e1f5fe;
+		background: #87c4f5;
 		text-align: left;
 		padding-left:18px;
+		color: #fff;
 	}
 	table.result tbody tr.src-file td{
 		border-color: #0000002e;
+		font-size:15px;
 	}
 	
 	table.result tbody tr.src-file.collapsed>td:first-child:before,table.result tbody tr.src-file.expanded>td:first-child:before{
@@ -60,10 +71,11 @@
 	}
 	
 	table.result tbody tr.src-func>td:first-child{
-		background:#d5e7ef;
+		background:#accfeb;
+		color: black;
 	}
 	table.result tbody tr.src-func td{
-		background:#eee;
+		background:#f0f0f0;
 	}
 	table.result tbody tr.src-func td:first-child:before{
 		content:'';
@@ -77,7 +89,7 @@
 		display:table-row;
 	}
 	
-	
+	/* --------- inner table ------------*/
 	table.result table{
 		font-size:inherit;
 		width:100%;
@@ -89,9 +101,14 @@
 	table.result table tr:not(:last-child) td{
 		border-bottom: 1px solid #00000020;
 	}
+	table.result table tr:first-child td{
+		width:50%;
+	}
+	
 	td.potency {
 		color: #c9a3d7;
 	}
+	/*---------- source badge -----------*/
 	tr.src1-only>td:first-child,tr.src2-only>td:first-child{
 		color:#c62823;
 	}

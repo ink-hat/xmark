@@ -26,7 +26,7 @@ def calculate(src, functions=False):
         1 : float
             average cyclomatic complexity of all function
             in the source file
-        2 : dict of int  (only if functions = True)
+        2 : list of list(3) (only if functions = True)
             the keys will be in format 'func_name@start_line'
             func_name is the name of function, start_line is the
             line number of function header. The value gives the 
@@ -36,8 +36,8 @@ def calculate(src, functions=False):
     result = file_analyzer(src)
     ret = [result.CCN,result.average_CCN]
     if functions:
-        fun = {}
+        func = []
         for fun_result in result.function_list:
-            fun[fun_result.name+"@"+str(fun_result.start_line)] = fun_result.cyclomatic_complexity
-        ret.append(fun)
+            func.append([fun_result.name,fun_result.start_line,fun_result.cyclomatic_complexity])
+        ret.append(func)
     return ret

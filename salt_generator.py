@@ -1,28 +1,33 @@
 import random
 import math 
+import re
 
 class SaltedCollatz:
-    def __init__(self,x):
+    def __init__(self,modulo = 64,eil = 100, ail = 60):
+        '''
+        parameters
+        ----------
+        modulo : int
+            an integer of form 2^n.
+        eil : int
+            upper limit for coeficients of ei polynomial. 
+            It should be grater than square root of modulo,
+            otherwise an exception is raised.
+        ail : int
+            upper limit for choosing values for a1 to a6.
+            larger numbers give more randomness. It can have a
+            minimum value of 3, but this will not produce
+            any randomness.
+        '''
 
-        self.ei_upperLimit = 100	# max value for salt poly coefficient (depends on modulo)
-        self.ai_upperLimit = 100  	# max value for ai
-        self.modulo = 64			# should be a 2^n number
+        self.ei_upperLimit = eil	# max value for salt poly coefficient (depends on modulo)
+        self.ai_upperLimit = ail  	# max value for ai
+        self.modulo = modulo		# should be a 2^n number
 
         self.calcSaltPolynomials()
         self.calcAiCoefficients()
         self.calcSCoefficients()
         self.calcSInverseCoefficients()
-
-        # since all values are static evaluate ei(x) and si
-        # evaluating salt polynomials(ei) with value of x
-        self.e1 = self.evalPoly(self.e1_coef,x)
-        self.e2 = self.evalPoly(self.e2_coef,x)
-        self.e3 = self.evalPoly(self.e3_coef,x)
-        
-        # calculating values of s0,s1 and s
-        self.s0 = (self.a4 * self.e1 + self.a5 * self.e3) // self.a6
-        self.s1 = (self.a1 * self.e1 + self.a2 * self.e2) // self.a3 - 1
-        self.s = self.s0 + self.s1
 
         #self.applyModuloToAll()
 
@@ -65,6 +70,8 @@ class SaltedCollatz:
     def calcAiCoefficients(self):
         # a1,a2,a3,a4,a5,a6
         # a1=3*a3 | a6=2*a4 | a2=n*a3 | a5=m*a6
+        if self.ai_upperLimit < 3:
+            raise Exception('value given for ai upper limit is too small')
         self.a3 = random.randint(1,self.ai_upperLimit//3)
         self.a4 = random.randint(1,self.ai_upperLimit//2)
         
@@ -81,7 +88,7 @@ class SaltedCollatz:
         #calculating s1
         s1_coef = list(map( lambda e1i,e2i: (self.a1 * e1i + self.a2 * e2i)//self.a3 , self.e1_coef, self.e2_coef))
         s1_coef[0] -= 1 # substract 1 from last element of s1_coef
-        # calculate s = s0 + s1
+
         s_coef = list(map( lambda s0i,s1i: s0i+s1i, s0_coef, s1_coef) )
 
         self.s_coef = tuple(s_coef)
@@ -89,12 +96,12 @@ class SaltedCollatz:
     def calcSInverseCoefficients(self):
         modulo = self.modulo
         a = list(self.s_coef)
-        # subtract 1x from s or a 
+        # subtract 1x from s ( or a )
         a[1] -= 1
         # find modular multiplicative inverse of a[1]
         a1Inv = pow(a[1], -1 , modulo)
 
-        # intializing s-1 array
+        # intializing s-1 (s inverse) array
         b = list( 0 for i in range(len(a)) )
 
         b[3] = -a1Inv**4 % modulo * a[3]
@@ -103,6 +110,41 @@ class SaltedCollatz:
         b[0] = -a1Inv * a[0] - a1Inv**3 % modulo * a[0]**2*a[2] + a1Inv**4 % modulo * a[0]**3*a[3]
         
         self.sInv_coef = tuple(b)
+    
+    #@staticmethod
+    def saltedCode(self):
+        code = """
+e1,e2,e3 = e1_val, e2_val, e3_val
+s0 = (a4*e1 + a5*e3)//a6
+s1 = (a1*e1 + a2*e2)//a3 - 1
+s = s0 + s1
+while(evalPoly(sInv,yr-x-1) % modulo != x):
+    yr = yr + e1 - sr
+    if yr % 2 == 1:
+        yr = (a1 * yr + a2 * e2)//a3 + s0
+    else:
+        yr = (a4 * yr + a5 * e3)//a6 + s1
+    sr = s
+
+    if evalPoly(sInv,(yr-c-1)) % modulo == x :
+        print('\\n....payload block....\\n')
+        break
+
+        """
+        code = code.replace('sInv',self.sInv_coef.__str__())
+        code = code.replace('modulo',self.modulo.__str__())
+        code = code.replace('e1_val','evalPoly({},x)'.format(self.e1_coef))
+        code = code.replace('e2_val','evalPoly({},x)'.format(self.e2_coef))
+        code = code.replace('e3_val','evalPoly({},x)'.format(self.e3_coef))
+        code = code.replace('a1',self.a1.__str__())
+        code = code.replace('a2',self.a2.__str__())
+        code = code.replace('a3',self.a3.__str__())
+        code = code.replace('a4',self.a4.__str__())
+        code = code.replace('a5',self.a5.__str__())
+        code = code.replace('a6',self.a6.__str__())
+
+        with open('kil.txt','w') as f:
+            f.write(code)
 
     @staticmethod
     def evalPoly(p,x):
@@ -186,7 +228,9 @@ class SaltedCollatz_test:
         return True		
 
 if __name__=='__main__':
-    sc=SaltedCollatz(10)
+    sc=SaltedCollatz()
     sct=SaltedCollatz_test()
     sct.test(sc)
     #print(sc)
+
+    sc.saltedCode()

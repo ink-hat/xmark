@@ -31,8 +31,8 @@ def calculate(src,algo=None):
     return [comp_len/uncomp_len,]
 
 
-def normalized(src1,src2,algo='lzma'):
-    '''computes normalized Kolmogorov complexity
+def mutual_info(src1,src2,algo='lzma'):
+    '''computes algorithmic mutual information
 
     parameters
     ----------
@@ -57,7 +57,7 @@ def normalized(src1,src2,algo='lzma'):
     z2 = _compressed_length(d2,algo)
     z12 = _compressed_length(d1+d2,algo)
 
-    return (z12 - min(z1,z2))/max(z1,z2)
+    return [1-(z12 - min(z1,z2))/max(z1,z2)]
 
 
 def _compressed_length(data,algo=None):

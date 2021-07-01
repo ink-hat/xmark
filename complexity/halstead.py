@@ -30,12 +30,12 @@ def calculate(src, functions=False):
     '''
     file_analyzer = FileAnalyzer(get_extensions([]))
     result = file_analyzer(src)
-    fun = {}
+    func = []
     for fun_result in result.function_list:
-        fun[fun_result.name+"@"+str(fun_result.start_line)] = fun_result.length
-    ret = [sum(fun.values())]
+        func.append([fun_result.name,fun_result.start_line,fun_result.length])
+    ret = [sum(map(lambda x:x[2], func)),]
 
     if functions:
-        ret.append(fun)
+        ret.append(func)
         
     return ret

@@ -6,7 +6,7 @@ def main():
     global e1,e2,e3,a1,a2,a3,a4,a5,a6,s0,s1,s,sInv,modulo
 
     x = 30
-    y = 10
+    y = 63
 
     # calculating values for salted collatz
     sc = SaltedCollatz(x)
@@ -23,6 +23,15 @@ def main():
     hailstoneSequence = target_func()
 
     Collatz_test().test(hailstoneSequence,y)
+    print('retrived hailstone sequenc : ({})'.format(len(hailstoneSequence)))
+    print(hailstoneSequence)
+    hailstoneSequenceO = Collatz.hailstoneSequence(y)
+    print('correct hailstone sequenc : ({})'.format(len(hailstoneSequenceO)))
+    print(hailstoneSequenceO)
+    subset=False
+    if len(hailstoneSequence) <= len(hailstoneSequenceO):
+        subset = hailstoneSequenceO[:len(hailstoneSequence)] == hailstoneSequence
+    print("retrived subset of correct sequence : "+("true" if subset else "fasle"))
 
 def target_func():
     yr = y
@@ -30,6 +39,7 @@ def target_func():
     sr = 0
     hailstoneSequence = []
     while(SaltedCollatz.evalPoly(sInv,yr-x-1) % modulo != x):
+    #while(True):
         yr = yr + e1 - sr
         if yr % 2 == 1:
             yr = (a1 * yr + a2 * e2)//a3 + s0
@@ -39,8 +49,9 @@ def target_func():
             hailstoneSequence.append(1)
         sr = s
 
-        if SaltedCollatz.evalPoly(sInv,yr-c-1) % modulo == x :
+        if SaltedCollatz.evalPoly(sInv,(yr-c-1)) % modulo == x :
             print('\n....payload block....\n')
+            break
     return tuple(hailstoneSequence)
         
 if __name__ == '__main__':
