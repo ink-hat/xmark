@@ -12,7 +12,7 @@ class CodeGenerator():
         if lang in self._avail_langs:
             self.lang = lang
         else:
-            raise ValueError('Invalid value for lang; allowed values are: ',_avail_langs.keys())
+            raise ValueError('Invalid value for lang; allowed values are: ',self._avail_langs.keys())
         
         if type == 'regular':
             self.type = 0
