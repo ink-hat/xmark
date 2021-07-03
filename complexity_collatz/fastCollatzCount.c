@@ -7,10 +7,8 @@ void main()
 	unsigned long long MAX_CHECK_NUMBER = 4294967295ul;
 	int INT_SIZE = 32;
 	
-	unsigned int i,n,print_mask,avgIteration;
+	unsigned int i,n,avgIteration;
 	unsigned long long numRounds,maxIteration = 0,totalIterationCount=0;
-	
-	print_mask = ((1 << 20)-1);
 
     printf("Calculating number of iterations in collatz conjecture\n");
     printf("Highest input : %llu\n", MAX_CHECK_NUMBER);
@@ -40,7 +38,7 @@ void main()
 			totalIterationCount -= MAX_CHECK_NUMBER;
 		}
 		
-        if((i & print_mask) == 0)    
+        if((i & (i-1)) == 0)    
             printf("%d\r",i);
 	}
 	
