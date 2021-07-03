@@ -39,6 +39,7 @@ class Collatz:
         Return
         ------
         tuple(int)
+            this sequence does not contain the original input
         '''
         seq = []
         while a != 1:
@@ -61,7 +62,11 @@ class Collatz:
 
         Return
         ------
-        tuple(int) : each entry will be either 0 or 1
+        tuple(int)
+            each entry will be either 0 or 1
+            odd -> 0,  even -> 1
+            this sequence will contain hailstone value of original input
+            but not that of 1
         '''
         seq = cls.collatzSequence(a)
         seq = [a] + list(seq[0:-1])
