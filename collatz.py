@@ -42,9 +42,17 @@ class Collatz:
             this sequence does not contain the original input
         '''
         seq = []
-        while a != 1:
+        # old code ------
+        # while a != 1:
+        #     a=cls.collatz(a)
+        #     seq.append(a)
+        # --------------
+        
+        # this modified code produce collatz sequence of 1
+        while True:
             a=cls.collatz(a)
             seq.append(a)
+            if a == 1: break
         return seq
 
     @classmethod
