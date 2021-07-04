@@ -1,3 +1,4 @@
+from collatz import Collatz
 import random
 import math 
 import re
@@ -8,7 +9,7 @@ class SaltGenerator:
         parameters
         ----------
         modulo : int
-            an integer of form 2^n.
+            an integer of the form 2^n.
         eil : int
             upper limit for coeficients of ei polynomial. 
             It should be grater than 2 * square root of modulo,
@@ -18,53 +19,52 @@ class SaltGenerator:
             larger numbers give more randomness. It can have a
             minimum value of 3, but this will not produce
             any randomness.
+        Return
+        ------
+        none
+
+        Raises
+        ------
+        ValueError
+            1. when eil is smaller than limit
+            2. when ail is smaller than limit
         '''
 
         self.ei_upperLimit = eil	# max value for salt poly coefficient (depends on modulo)
         self.ai_upperLimit = ail  	# max value for ai
         self.modulo = modulo		# should be a 2^n number
 
-        self.calcSaltPolynomials()
-        self.calcAiCoefficients()
-        self.calcSCoefficients()
-        self.calcSInverseCoefficients()
-
-        #self.applyModuloToAll()
-
-    def applyModuloToAll(self):
-        self.e1 %= self.modulo
-        self.e2 %= self.modulo
-        self.e3 %= self.modulo
-
-        self.s0 %= self.modulo
-        self.s1 %= self.modulo
-        self.s %= self.modulo
-
-        self.sInv_coef = [ (coef % self.modulo) for coef in self.sInv_coef]
+        self._calcSaltPolynomials()
+        self._calcAiCoefficients()
+        self._calcSCoefficients()
+        self._calcSInverseCoefficients()
 
 
-    def calcSaltPolynomials(self):
+    def _calcSaltPolynomials(self):
         '''
         calculates ei(x) coeficients 
-        (e1 to e3 each with 4 coeficients ie cubic)
+        e1 to e3 (each with 4 coeficients ie cubic)
         '''
         # finding num of 2 in modulo
         countOf2 = math.log2(self.modulo)
-        # our required count of 2 in each coefficien of ei is countOf2 / 2
+        # our required count of 2 in each coefficien of ei is half of countOf2
         reqCountOf2 = math.ceil(countOf2/2)
 
         min2Value = 2**reqCountOf2
+        # creating a sample space of  values allowed as coefficients of ei
+        # coefficients of x^1 and x^0 are choosen from sampleSpaceL and
+        # all higher order coefficeints are chosen from sampleSpaceU.
+        # The +1 is to make the uper limit inclusive.
         sampleSpaceU = tuple(range(min2Value, self.ei_upperLimit+1, min2Value))
         sampleSpaceL = tuple(range(2, self.ei_upperLimit+1, 2))
 
         # sample space for e1 poly require an aditional 2 in it
         # because it will get divided by 2 in s0 so give another 2 
-        # the +1 is to make the uper limit inclusive
         sampleSpaceUe1 = tuple(range(min2Value*2, self.ei_upperLimit+1, min2Value*2))
         sampleSpaceLe1 = tuple(range(4, self.ei_upperLimit+1, 4))
 
         if len(sampleSpaceUe1) < 1:
-            raise Exception('current ei_upperLimit too small for the modulo, sample sapce is empty')
+            raise ValueError('current ei_upperLimit too small for the modulo, sample sapce is empty')
         elif len(sampleSpaceUe1) < 2:
             print('WARNING: ei_upperLimit is very small to get any random behaviour in ei coiefficients')
 
@@ -72,14 +72,14 @@ class SaltGenerator:
         self.e2_coef = tuple(random.choices(sampleSpaceL, k=2) + random.choices(sampleSpaceU, k=2))
         self.e3_coef = tuple(random.choices(sampleSpaceL, k=2) + random.choices(sampleSpaceU, k=2))
         
-    def calcAiCoefficients(self):
+    def _calcAiCoefficients(self):
         '''
         calculate ai (a1 to a6)
         '''
         # a1,a2,a3,a4,a5,a6
         # a1=3*a3 | a6=2*a4 | a2=n*a3 | a5=m*a6
         if self.ai_upperLimit < 3:
-            raise Exception('value given for ai upper limit is too small')
+            raise ValueError('value given for ai upper limit is too small')
         self.a3 = random.randint(1,self.ai_upperLimit//3)
         self.a4 = random.randint(1,self.ai_upperLimit//(2+2))
         
@@ -89,7 +89,7 @@ class SaltGenerator:
         self.a2 = random.randint(0,self.ai_upperLimit//self.a3) * self.a3
         self.a5 = random.randint(0,self.ai_upperLimit//self.a6) * self.a6
 
-    def calcSCoefficients(self):
+    def _calcSCoefficients(self):
         ''' This computes coefficient of S-x'''
         # calculating s0 
         s0_coef = list(map( lambda e1i,e3i: (self.a4 * e1i + self.a5 * e3i)//self.a6 , self.e1_coef, self.e3_coef))
@@ -101,7 +101,7 @@ class SaltGenerator:
 
         self.s_coef = tuple(s_coef)
     
-    def calcSInverseCoefficients(self):
+    def _calcSInverseCoefficients(self):
         ''' computes s inverse coefficients'''
         modulo = self.modulo
         a = list(self.s_coef)
@@ -113,19 +113,13 @@ class SaltGenerator:
         # intializing s-1 (s inverse) array
         b = list( 0 for i in range(len(a)) )
 
-        b[3] = -a1Inv**4 % modulo * a[3]
-        b[2] = -a1Inv**3 % modulo * a[2] + a1Inv**4 % modulo * 3*a[0]*a[3]
-        b[1] = a1Inv + a1Inv**3 % modulo * 2*a[0]*a[2] - a1Inv**4 % modulo * 3*a[0]**2*a[3]
-        b[0] = -a1Inv * a[0] - a1Inv**3 % modulo * a[0]**2*a[2] + a1Inv**4 % modulo * a[0]**3*a[3]
-        # 2 interpretation of unary minus bottom seems to be the intended one
-        # as it is the common format according to wikipdia. both form passes
-        # permutation and invertibility test
         b[3] = -(a1Inv**4 % modulo) * a[3]
         b[2] = -(a1Inv**3 % modulo) * a[2] + (a1Inv**4 % modulo) * 3*a[0]*a[3]
         b[1] = a1Inv + (a1Inv**3 % modulo) * 2*a[0]*a[2] - (a1Inv**4 % modulo) * 3*a[0]**2*a[3]
         b[0] = -a1Inv * a[0] - (a1Inv**3 % modulo) * a[0]**2*a[2] + (a1Inv**4 % modulo) * a[0]**3*a[3]
 
-        # doing modulo not sure if its needed
+        # doing modulo. the -ve coefficiants get converted
+        # to positive integers
         b = tuple(map(lambda x: x % modulo,b))
         
         self.sInv_coef = tuple(b)
@@ -165,41 +159,78 @@ class SaltGenerator:
         return s
 
 class SaltGenerator_test:
+    '''This is a class for running tests on SaltGenerator
+    3 part of saltgenerator is tested
+    1. S polynomial
+        1. checks if it is a permutaions polynomial. (bruteforce)
+        2. checks if its invertible 
+    2. S-1 (S inverse) polynomial
+        1. checks if it behaves as s permutaions polynomial. (bruteforce)
+        2. checks if its a true inverse. (bruteforce)
+    3. Salted loop
+        This is an expensive test, so its disabled for modulo values
+        greater than 2^20. All tests are brute force method.
+        1. checks it it produce correct hailstone sequence
+        2. checks if the payload is executable at all combination
+        3. checks if the while loop always terminates.
+    
+    How to use
+    ----------
+        sg = SaltGenerator(...)
+        sgt = SaltGenerator_test(sg)
+        sgt.runTest()
+    '''
 
     def __init__(self,sc):
+        '''
+        initialize 
+        parameters
+        ----------
+        sc : SaltGenerator object
+        '''
         self.sc = sc
         self.log = ''
         self.failed = 0
     
-    def runTest(self,show=True):
-        self.printResult = show
-        self.print('------ Salt Generator Test -------')
+    def runTest(self,silent=False,force_st=False):
+        '''
+        run all test
+        parameters
+        ----------
+        silent: optional, default=False
+            when True test result is not printed.
+        force_st: optional, default=False
+            When true salt loop test is not skipped for
+            larger values.
+
+        return
+        ------
+        boolean 
+            True if all tests passes False otherwise 
+        '''
+        self.silentResult = silent
+        self.print('-------- Salt Generator Test ---------')
+        if self.sc.modulo > (1<<24):
+            print('WARNING: Modulo very large. Tests may take long')
+            print('It is not advised to run test on modulo greater than 2^24')
         try:
             self._test_s_x()
             self._test_s_1()
-            self._test_salted_loop()
+            if force_st or self.sc.modulo <= 1<<20:
+                self._test_salted_loop()
+            else:
+                self.print('salted loop test skipped due to large modulo size')
         except KeyboardInterrupt as kb_excp:
             self.log += 'Keyboard interupt recieved.\n'
-            self.log_error()
+            self._log_error()
             raise kb_excp
         
         if self.failed > 0:
-            self.log_error()
+            self._log_error()
             return False
 
         self.print('Generator Test complete       : PASSED ALL')
         return True
-
-    def log_error(self):
-        self.print('Generator Test complete       : FAILED', self.failed)
-        # writing log to file
-        with open('SaltGenerator.log','a') as f:
-            import time
-            ct = time.strftime('[%y-%m-%d %H:%M:%S %b %a]',time.localtime())
-            f.write(ct+"\n")
-            f.write(str(self.sc)+'\n')
-            f.write(self.log+'\n\n')
-        return False
 
     def _test_s_x(self):
         self.print('testing S-x')
@@ -238,7 +269,7 @@ class SaltGenerator_test:
             self.failed += 1
             self.log += "S-1 permutation test failed.\n"
 
-        self.print('    {:26}:'.format('invertibility test'),end=' ')
+        self.print('    {:26}:'.format('inverse test'),end=' ')
         resInvers = self.verifyInverse(s_coef,self.sc.sInv_coef,self.sc.modulo)
         if resInvers:
             self.print('PASSED')
@@ -255,8 +286,8 @@ class SaltGenerator_test:
         
         self.print('testing salted loop')
 
-        x = 30
-        c = 30
+        x = 53
+        c = 53
         failed_result = {}
         check_hailstone_sequence = True
         max_hailstone_check_number = int(math.sqrt(self.sc.modulo))
@@ -264,8 +295,8 @@ class SaltGenerator_test:
         all_payload_execution_passed = True
         all_while_condition_passed = True
 
-        for y in range(2,self.sc.modulo):
-            res = self.saltedLoop(x,c,y)
+        for y in range(1,self.sc.modulo):
+            res = self._saltedLoop(x,c,y,not check_hailstone_sequence)
             info = {}
             info['payload_executed'] = res[0]
             info['while_condition_stops'] = res[1]
@@ -285,7 +316,7 @@ class SaltGenerator_test:
                             break
                 if y > max_hailstone_check_number:
                     check_hailstone_sequence = False
-                    self.print('    {:25} :'.format('hailstone test (2-'+str(max_hailstone_check_number)+')'),end=' ')
+                    self.print('    {:25} :'.format('hailstone test (1-'+str(max_hailstone_check_number)+')'),end=' ')
                     if all_hailstone_sequence_passed: self.print('PASSED')
                     else: self.print('FAILED'); self.failed += 1
 
@@ -343,7 +374,7 @@ class SaltGenerator_test:
                 return False
         return True		
 
-    def saltedLoop(self,x,c,y):
+    def _saltedLoop(self,x,c,y,nohs=False):
         payload_executed = False
         will_while_stop = True
         hailstoneSequence = []
@@ -357,28 +388,37 @@ class SaltGenerator_test:
         s = s0 + s1
         yr = y
         sr = 0
+        # ------- Y value Guard -------------
+        # this avert illegal y value which causes the test to fail.
+        # Like how 1 is an illegal value in regular collatz
+        # unlike 1 this value is different for each x
+        if (y-1) == (s%self.sc.modulo):
+            payload_executed = True
+            hailstoneSequence = Collatz.hailstoneSequence(yr)
+            #print('illegal y value:',y,s,(s%self.sc.modulo))
+        # --------------------
+
         while(self.sc.evalPoly(self.sc.sInv_coef,yr-x-1) % self.sc.modulo != x):
             yr = yr + e1 - sr
             if yr % 2 == 1:
                 yr = (self.sc.a1 * yr + self.sc.a2 * e2)//self.sc.a3 + s0
-                hailstoneSequence.append(0)
+                if not nohs: hailstoneSequence.append(0)
             else:
                 yr = (self.sc.a4 * yr + self.sc.a5 * e3)//self.sc.a6 + s1
-                hailstoneSequence.append(1)
+                if not nohs: hailstoneSequence.append(1)
             sr = s
-
-            # temp code-----------
-            if y == 63:
-                print(yr%self.sc.modulo,end=", ")
-            # end temp code -----------
 
             if self.sc.evalPoly(self.sc.sInv_coef,(yr-c-1)) % self.sc.modulo == x :
                 # .............. PAYLOAD BLOCK .................
                 payload_executed = True
                 will_while_stop = not (self.sc.evalPoly(self.sc.sInv_coef,yr-x-1) % self.sc.modulo != x)
                 break
+                # ............... end payload ...................
             
             # forced iteration breaker
+            # this is a fail safe to stop infinit iteration
+            # the value of max_iteration is completely arbitrary
+            # it is more than enough for 32-bit, probably not for 64-bit
             iteration += 1
             if iteration > max_iteration:
                 payload_executed = False
@@ -387,16 +427,25 @@ class SaltGenerator_test:
                 break
         # END Salted Loop ----------------
         return payload_executed,will_while_stop,hailstoneSequence
+    
+    def _log_error(self):
+        self.print('Generator Test complete       : FAILED', self.failed)
+        # writing log to file
+        with open('SaltGenerator.log','a') as f:
+            import time
+            ct = time.strftime('[%y-%m-%d %H:%M:%S %b %a]',time.localtime())
+            f.write(ct+"\n")
+            f.write(str(self.sc)+'\n')
+            f.write(self.log+'\n\n')
+        return False
 
     def print(self,*argv,**kwarg):
         '''This is just to support conditional printing of error'''
-        if self.printResult:
+        if not self.silentResult:
             print(*argv,**kwarg)
 
 if __name__=='__main__':
-    sg=SaltGenerator(1<<16,1<<9,100)
+    sg=SaltGenerator(1<<16,1<<13,1000)
     sgt=SaltGenerator_test(sg)
     sgt.runTest()
     print(sg)
-
-    #sc.saltedCode()
