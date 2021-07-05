@@ -150,7 +150,8 @@ while(evalPoly(sInv,yr-x-1) != x)
 
 if __name__ == '__main__':
     cg = CodeGenerator('c','salted')
-    cg.set_salt_param(1<<16, 1<<9, 100)
+    cg.set_salt_param(1<<16, 1<<13, 1000)
     code  = cg.get_code()
+    print()
     print(code)
         
