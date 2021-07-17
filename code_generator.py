@@ -79,12 +79,18 @@ class CodeGenerator():
         code = code.replace('e1_val','{{{}}}'.format( ','.join(map(str,self.sg.e1_coef)) ))
         code = code.replace('e2_val','{{{}}}'.format( ','.join(map(str,self.sg.e2_coef)) ))
         code = code.replace('e3_val','{{{}}}'.format( ','.join(map(str,self.sg.e3_coef)) ))
+        code = code.replace('s0_val','{{{}}}'.format( ','.join(map(str,self.sg.s0_coef)) ))
         code = code.replace('a1_val',str(self.sg.a1))
         code = code.replace('a2_val',str(self.sg.a2))
         code = code.replace('a3_val',str(self.sg.a3))
         code = code.replace('a4_val',str(self.sg.a4))
         code = code.replace('a5_val',str(self.sg.a5))
         code = code.replace('a6_val',str(self.sg.a6))
+
+        # There is a problem with calculation of s0. s0 calculation
+        # has a hidden division by 2. This cause some problem with
+        # overflow as division is not preserved in modulo operation.
+        # So s0 is calculated using precalculated coefficient.
 
         # replacing user specified variables or functions
         # 1. x variable
@@ -122,7 +128,9 @@ while(evalPoly(sInv_val,yr-x-1) % modulo_val != x):
     _c_salt_template = '''
 uint16_t e1a[] = e1_val, e2a[] = e2_val, e3a[] = e3_val;
 uint16_t e1 = evalPoly(e1a,x), e2 = evalPoly(e2a,x), e3 = evalPoly(e3a,x);
-uint16_t s0 = (a4_val*e1 + a5_val*e3)/a6_val;
+//uint16_t s0 = (a4_val*e1 + a5_val*e3)/a6_val;
+uint16_t s0_coef = s0_val;
+uint16_t s0 = evalPoly(s0_coef);
 uint16_t s1 = (a1_val*e1 + a2_val*e2)/a3_val - 1;
 uint16_t s = s0 + s1;
 uint16_t sInv[] = sInv_val;
