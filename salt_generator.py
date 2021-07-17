@@ -100,6 +100,8 @@ class SaltGenerator:
         s_coef = list(map( lambda s0i,s1i: s0i+s1i, s0_coef, s1_coef) )
 
         self.s_coef = tuple(s_coef)
+        self.s0_coef = tuple(s0_coef)
+        self.s1_coef = tuple(s1_coef)
     
     def _calcSInverseCoefficients(self):
         ''' computes s inverse coefficients'''
@@ -155,7 +157,8 @@ class SaltGenerator:
         s+="e2 = {0[e2_coef]} \n".format(self.__dict__)
         s+="e3 = {0[e3_coef]}\n".format(self.__dict__)
         s+="a1={0[a1]}, a2={0[a2]}, a3={0[a3]}, a4={0[a4]}, a5={0[a5]}, a6={0[a6]} \n".format(self.__dict__)
-        s+="s = {0[s_coef]}, s-1 = {0[sInv_coef]} ".format(self.__dict__)
+        s+="s0 = {0[s0_coef]}, s1 = {0[s1_coef]} \n".format(self.__dict__)
+        s+="s = {0[s_coef]}, s-1 = {0[sInv_coef]} \n".format(self.__dict__)
         return s
 
 class SaltGenerator_test:
