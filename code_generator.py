@@ -74,6 +74,7 @@ class CodeGenerator():
         c_var = 'c'
         evalPoly_func = 'evalPoly'
 
+        s0_coef = tuple(map(lambda x : x % self.sg.modulo, self.sg.s0_coef))
         code = self._c_salt_template
         code = code.replace('sInv_val','{{{}}}'.format( ','.join(map(str,self.sg.sInv_coef)) ))
         code = code.replace('e1_val','{{{}}}'.format( ','.join(map(str,self.sg.e1_coef)) ))
